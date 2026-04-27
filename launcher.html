@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>ShadowRust</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  width:800px; height:500px; overflow:hidden;
+  font-family:'Inter',sans-serif; user-select:none;
+  background:#080A0F;
+}
+
+/* Фон */
+.bg {
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(123,79,255,0.25) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, rgba(80,40,180,0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 80%, rgba(40,10,100,0.3) 0%, transparent 50%),
+    linear-gradient(135deg, #080A0F 0%, #0F0820 50%, #080A0F 100%);
+}
+
+/* Сетка */
+.grid {
+  position:absolute; inset:0; opacity:.07;
+  background-image:
+    linear-gradient(rgba(123,79,255,1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(123,79,255,1) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+
+/* Частицы */
+.particles { position:absolute; inset:0; pointer-events:none; }
+.p {
+  position:absolute; border-radius:50%;
+  background:rgba(123,79,255,0.6);
+  animation:rise linear infinite;
+}
+@keyframes rise {
+  0%   { transform:translateY(520px) scale(0); opacity:0; }
+  10%  { opacity:1; }
+  90%  { opacity:.4; }
+  100% { transform:translateY(-20px) scale(1); opacity:0; }
+}
+
+/* Titlebar */
+#tb {
+  position:absolute; top:0; left:0; right:0; height:36px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 12px; z-index:10; -webkit-app-region:drag;
+}
+.tb-btns { display:flex; gap:6px; -webkit-app-region:no-drag; }
+.tb-btn {
+  width:12px; height:12px; border-radius:50%; border:none; cursor:pointer; transition:.2s;
+}
+.tb-close  { background:#FF5F57; }
+.tb-min    { background:#FEBC2E; }
+.tb-close:hover  { background:#FF3B30; }
+.tb-min:hover    { background:#F0A500; }
+
+/* Основной контент */
+.content {
+  position:absolute; inset:0; display:flex;
+  flex-direction:column; align-items:center; justify-content:center;
+  z-index:5; padding:36px 40px 28px;
+}
+
+/* Логотип */
+.logo {
+  font-family:'Rajdhani',sans-serif; font-size:52px; font-weight:700;
+  letter-spacing:6px; line-height:1; margin-bottom:6px;
+  text-shadow: 0 0 40px rgba(123,79,255,0.8), 0 0 80px rgba(123,79,255,0.3);
+}
+.logo .s { color:#A67BFF; }
+.logo .r { color:#E8EAF0; }
+
+.tagline {
+  font-size:12px; color:rgba(255,255,255,0.35); letter-spacing:4px;
+  text-transform:uppercase; margin-bottom:32px;
+}
+
+/* Статы */
+.stats {
+  display:flex; gap:32px; margin-bottom:36px;
+}
+.stat { text-align:center; }
+.stat-val {
+  font-family:'Rajdhani',sans-serif; font-size:26px; font-weight:700;
+  color:#A67BFF; display:block; line-height:1;
+}
+.stat-label { font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
+.stat-sep { width:1px; background:rgba(255,255,255,0.08); align-self:stretch; }
+
+/* Прогресс бар обновления */
+.update-wrap {
+  width:360px; margin-bottom:20px; display:none;
+}
+.update-label {
+  display:flex; justify-content:space-between; margin-bottom:6px;
+  font-size:12px; color:rgba(255,255,255,0.4);
+}
+.progress-track {
+  height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;
+}
+.progress-fill {
+  height:100%; background:linear-gradient(90deg, #7B4FFF, #A67BFF);
+  border-radius:2px; width:0%; transition:width .3s ease;
+  box-shadow:0 0 8px rgba(123,79,255,0.8);
+}
+
+/* Кнопка играть */
+.btn-play {
+  width:280px; height:52px; border:none; border-radius:14px; cursor:pointer;
+  font-family:'Rajdhani',sans-serif; font-size:18px; font-weight:700;
+  letter-spacing:3px; color:#fff; position:relative; overflow:hidden;
+  background:linear-gradient(135deg, #7B4FFF 0%, #5B2FDF 100%);
+  box-shadow: 0 0 30px rgba(123,79,255,0.5), 0 4px 20px rgba(0,0,0,0.4);
+  transition:.2s; margin-bottom:16px;
+}
+.btn-play::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+}
+.btn-play:hover {
+  transform:translateY(-2px);
+  box-shadow: 0 0 50px rgba(123,79,255,0.7), 0 8px 30px rgba(0,0,0,0.5);
+}
+.btn-play:active { transform:translateY(0); }
+.btn-play:disabled {
+  opacity:.5; cursor:not-allowed; transform:none;
+}
+
+/* Нижние кнопки */
+.bottom-btns { display:flex; gap:10px; }
+.btn-sm {
+  padding:8px 18px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.5);
+  font-size:12px; font-weight:500; cursor:pointer; transition:.2s;
+  backdrop-filter:blur(4px);
+}
+.btn-sm:hover { border-color:rgba(123,79,255,0.5); color:rgba(255,255,255,0.8); background:rgba(123,79,255,0.1); }
+
+/* Статус */
+.status-bar {
+  position:absolute; bottom:0; left:0; right:0; height:28px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 16px; background:rgba(0,0,0,0.3); z-index:10;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+.status-left { display:flex; align-items:center; gap:8px; }
+.status-dot { width:6px; height:6px; border-radius:50%; background:#2ED573; box-shadow:0 0 6px #2ED573; }
+.status-text { font-size:11px; color:rgba(255,255,255,0.3); }
+.status-right { font-size:11px; color:rgba(255,255,255,0.2); }
+
+/* Скриншот flash */
+.flash {
+  position:absolute; inset:0; background:white; z-index:100;
+  opacity:0; pointer-events:none; transition:opacity .1s;
+}
+.flash.show { opacity:.6; }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="particles" id="particles"></div>
+<div class="flash" id="flash"></div>
+
+<!-- Titlebar -->
+<div id="tb">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:13px;color:rgba(255,255,255,0.2);letter-spacing:2px">SHADOWRUST</div>
+  <div class="tb-btns">
+    <button class="tb-btn tb-min"   onclick="ipc('minimize')"></button>
+    <button class="tb-btn tb-close" onclick="ipc('close')"></button>
+  </div>
+</div>
+
+<!-- Контент -->
+<div class="content">
+  <div class="logo"><span class="s">SHADOW</span><span class="r">RUST</span></div>
+  <div class="tagline">Modded 3X MAX 3</div>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-val" id="statOnline">—</span>
+      <span class="stat-label">Онлайн</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat">
+      <span class="stat-val">100</span>
+      <span class="stat-label">Слотов</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat">
+      <span class="stat-val" id="statWipe">—</span>
+      <span class="stat-label">До вайпа</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat">
+      <span class="stat-val">x2</span>
+      <span class="stat-label">Рейты</span>
+    </div>
+  </div>
+
+  <!-- Прогресс обновления -->
+  <div class="update-wrap" id="updateWrap">
+    <div class="update-label">
+      <span id="updateText">Проверка обновлений...</span>
+      <span id="updatePct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <button class="btn-play" id="btnPlay" onclick="btnClick()">▶ &nbsp; ИГРАТЬ</button>
+
+  <div class="bottom-btns">
+    <button class="btn-sm" onclick="ipc('open-discord')">� Discord</button>
+    <button class="btn-sm" onclick="ipc('open-site')">🌐 Сайт</button>
+  </div>
+</div>
+
+<!-- Статус бар -->
+<div class="status-bar">
+  <div class="status-left">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-text" id="statusText">Подключение...</span>
+  </div>
+  <span class="status-right" id="statusRight">ShadowRust Launcher v1.0</span>
+</div>
+
+<script>
+const { ipcRenderer } = require('electron');
+const ipc = (ch, d) => ipcRenderer.send(ch, d);
+
+// Частицы
+const pc = document.getElementById('particles');
+for (let i = 0; i < 25; i++) {
+  const p = document.createElement('div');
+  p.className = 'p';
+  const size = 2 + Math.random() * 3;
+  p.style.cssText = `
+    left:${Math.random()*100}%;
+    width:${size}px; height:${size}px;
+    animation-duration:${8+Math.random()*12}s;
+    animation-delay:${Math.random()*10}s;
+  `;
+  pc.appendChild(p);
+}
+
+// Онлайн
+ipc('get-online');
+ipcRenderer.on('online', (e, n) => {
+  document.getElementById('statOnline').textContent = n;
+  document.getElementById('statusDot').style.background = '#2ED573';
+  document.getElementById('statusDot').style.boxShadow = '0 0 6px #2ED573';
+  document.getElementById('statusText').textContent = 'Сервер онлайн';
+});
+setInterval(() => ipc('get-online'), 30000);
+
+// Вайп таймер
+function tick() {
+  const diff = new Date('2026-05-04T12:00:00') - new Date();
+  if (diff <= 0) { document.getElementById('statWipe').textContent = 'ВАЙП'; return; }
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor((diff%86400000)/3600000);
+  document.getElementById('statWipe').textContent = d > 0 ? `${d}д ${h}ч` : `${h}ч`;
+}
+tick(); setInterval(tick, 60000);
+
+// Играть / Обновить
+let hasUpdate = false;
+
+function btnClick() {
+  if (hasUpdate) {
+    startUpdate();
+  } else {
+    play();
+  }
+}
+
+function play() {
+  ipc('launch-rust', '127.0.0.1:28015');
+  document.getElementById('statusText').textContent = 'Запуск игры...';
+}
+
+function startUpdate() {
+  ipc('check-update');
+  document.getElementById('updateWrap').style.display = 'block';
+  document.getElementById('btnPlay').disabled = true;
+  document.getElementById('updateText').textContent = 'Проверка обновлений...';
+}
+
+// Проверяем обновления при старте
+ipc('check-update-silent');
+
+ipcRenderer.on('update-progress', (e, { text, pct }) => {
+  document.getElementById('updateWrap').style.display = 'block';
+  document.getElementById('updateText').textContent = text;
+  document.getElementById('updatePct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+
+ipcRenderer.on('update-done', (e, msg) => {
+  document.getElementById('updateText').textContent = msg;
+  document.getElementById('updatePct').textContent = '100%';
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('btnPlay').disabled = false;
+  hasUpdate = false;
+  document.getElementById('btnPlay').textContent = '▶  ИГРАТЬ';
+  setTimeout(() => {
+    document.getElementById('updateWrap').style.display = 'none';
+    document.getElementById('progressFill').style.width = '0%';
+  }, 3000);
+});
+
+// Есть обновление — меняем кнопку
+ipcRenderer.on('update-available', (e, info) => {
+  hasUpdate = true;
+  const btn = document.getElementById('btnPlay');
+  btn.textContent = '⬇  ОБНОВИТЬ';
+  btn.style.background = 'linear-gradient(135deg, #FF6B35 0%, #E05252 100%)';
+  btn.style.boxShadow = '0 0 30px rgba(255,107,53,0.5), 0 4px 20px rgba(0,0,0,0.4)';
+  document.getElementById('statusText').textContent = `Доступна версия ${info?.version || ''}`;
+  document.getElementById('statusDot').style.background = '#FF6B35';
+  document.getElementById('statusDot').style.boxShadow = '0 0 6px #FF6B35';
+  if (info?.changelog) {
+    document.getElementById('statusRight').textContent = info.changelog;
+  }
+});
+
+// Скриншот flash
+ipcRenderer.on('screenshot-taken', () => {
+  const f = document.getElementById('flash');
+  f.classList.add('show');
+  setTimeout(() => f.classList.remove('show'), 150);
+  document.getElementById('statusRight').textContent = '📸 ' + new Date().toLocaleTimeString('ru');
+});
+
+// Статус
+ipcRenderer.on('anticheat-status', (e, s) => {
+  document.getElementById('statusRight').textContent = `🛡️ AntiCheat: каждые ${s.interval} мин`;
+});
+</script>
+</body>
+</html>
